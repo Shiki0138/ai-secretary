@@ -33,7 +33,7 @@ interface MessageAnalysis {
 }
 
 // カレンダーアクセス（モック実装）
-async function getExecutiveSchedule(executiveId: string): Promise<Array<{time: string, available: boolean}>> {
+async function getExecutiveSchedule(_executiveId: string): Promise<Array<{time: string, available: boolean}>> {
   // 実際の実装では Google Calendar API を使用
   const mockSchedule = [
     { time: '今日 15:00-16:00', available: true },
@@ -49,7 +49,7 @@ async function getExecutiveSchedule(executiveId: string): Promise<Array<{time: s
 }
 
 // タスク情報取得（モック実装）
-async function getExecutiveTasks(executiveId: string): Promise<Array<{task: string, deadline: string, priority: string}>> {
+async function getExecutiveTasks(_executiveId: string): Promise<Array<{task: string, deadline: string, priority: string}>> {
   // 実際の実装では Task DB から取得
   return [
     { task: '予算承認', deadline: '今週金曜', priority: 'high' },
@@ -252,7 +252,7 @@ async function generateProposedResponse(
     })
     
     return response.choices[0].message.content || ''
-  } catch (error) {
+  } catch {
     return '適切な対応を検討いたします。'
   }
 }
@@ -306,18 +306,19 @@ async function getUserRole(userId: string): Promise<{ role: UserRole; userInfo: 
     const userInfo = await redis.get(`user:${userId}`)
     
     if (userInfo && typeof userInfo === 'object') {
+      const userInfoObj = userInfo as Record<string, unknown>
       const executives = await redis.smembers('executives') || []
       if (executives.includes(userId)) {
-        return { role: 'executive', userInfo }
+        return { role: 'executive', userInfo: userInfoObj }
       }
       
-      if ('role' in userInfo) {
-        if (userInfo.role === 'executive' || userInfo.role === '経営者' || userInfo.role === 'CEO' || userInfo.role === '社長') {
-          return { role: 'executive', userInfo }
+      if ('role' in userInfoObj) {
+        if (userInfoObj.role === 'executive' || userInfoObj.role === '経営者' || userInfoObj.role === 'CEO' || userInfoObj.role === '社長') {
+          return { role: 'executive', userInfo: userInfoObj }
         }
       }
       
-      return { role: 'employee', userInfo }
+      return { role: 'employee', userInfo: userInfoObj }
     }
     
     return { role: 'unknown', userInfo: null }

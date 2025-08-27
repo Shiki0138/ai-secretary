@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
     }
     
-  } catch (error) {
+  } catch {
     console.error('User setup error:', error)
     return NextResponse.json({
       error: 'Setup failed',
@@ -158,7 +158,7 @@ export async function GET() {
         list_users: 'POST with action: list_users'
       }
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({
       error: 'Failed to get status'
     }, { status: 500 })
