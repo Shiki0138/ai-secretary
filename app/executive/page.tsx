@@ -165,7 +165,8 @@ export default function ExecutiveDashboard() {
   }
 
   const copyInviteCode = () => {
-    const inviteCode = user?.tenantId?.slice(-8).toUpperCase()
+    const tenantId = user?.tenantId as string | undefined
+    const inviteCode = tenantId?.slice(-8).toUpperCase()
     if (inviteCode) {
       navigator.clipboard.writeText(inviteCode)
       alert('招待コードをコピーしました')
@@ -378,7 +379,7 @@ export default function ExecutiveDashboard() {
                   <h3 className="font-medium mb-2">招待コード</h3>
                   <div className="flex items-center gap-4">
                     <code className="bg-gray-100 px-3 py-2 rounded">
-                      {user?.tenantId?.slice(-8).toUpperCase()}
+                      {(user?.tenantId as string)?.slice(-8).toUpperCase()}
                     </code>
                     <button
                       onClick={copyInviteCode}
