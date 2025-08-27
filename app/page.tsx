@@ -14,10 +14,16 @@ export default function Home() {
             </div>
             <div className="hidden md:flex items-center space-x-6">
               <Link
-                href="/dashboard"
+                href="/executive/login"
                 className="text-gray-700 hover:text-gray-900"
               >
-                Dashboard
+                経営者ログイン
+              </Link>
+              <Link
+                href="/admin/login"
+                className="text-gray-700 hover:text-gray-900"
+              >
+                管理者
               </Link>
               <Link
                 href="/api/webhook"
@@ -41,16 +47,16 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-6">
               <Link
-                href="/lp"
+                href="/executive/login"
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
               >
-                サービス紹介を見る
+                経営者ダッシュボード
               </Link>
               <Link
-                href="/dashboard"
+                href="/lp"
                 className="text-gray-600 px-8 py-3 rounded-lg text-lg font-medium hover:text-gray-900 border border-gray-300 hover:border-gray-400 transition-colors"
               >
-                管理ダッシュボード
+                サービス紹介
               </Link>
             </div>
           </div>
@@ -87,10 +93,10 @@ export default function Home() {
                   <span className="text-2xl">📊</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  管理ダッシュボード
+                  マルチテナント対応
                 </h3>
                 <p className="text-gray-600">
-                  リアルタイムの統計情報、メッセージ履歴、ユーザー管理など、包括的な管理機能を提供します。
+                  企業ごとに完全分離されたデータ管理、経営者専用ダッシュボード、従業員管理機能を提供します。
                 </p>
               </div>
             </div>
