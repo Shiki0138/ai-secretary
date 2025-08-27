@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // 現在のデータ状況を確認
     const messageCount = await redis.llen('messages') || 0

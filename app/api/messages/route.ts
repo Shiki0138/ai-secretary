@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
 const redis = new Redis({
@@ -6,7 +6,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // 最新のメッセージを取得（最大20件）
     const messageStrings = await redis.lrange('messages', 0, 19)
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         if (analysisData && typeof analysisData === 'string') {
           try {
             analysis = JSON.parse(analysisData)
-          } catch (e) {
+          } catch {
             // 分析データの解析に失敗した場合はnull
           }
         }
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         if (userInfo && typeof userInfo === 'string') {
           try {
             user = JSON.parse(userInfo)
-          } catch (e) {
+          } catch {
             // ユーザー情報の解析に失敗した場合はnull
           }
         }

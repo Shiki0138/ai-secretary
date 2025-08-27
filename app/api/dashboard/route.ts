@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { Redis } from '@upstash/redis'
 
 const redis = new Redis({
@@ -6,7 +6,7 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!,
 })
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // メッセージ数を取得
     const totalMessages = await redis.llen('messages') || 0
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
           if (analysisData.priority === 'urgent') {
             urgentMessages++
           }
-        } catch (e) {
+        } catch {
           // 無視してcontinue
         }
       }
