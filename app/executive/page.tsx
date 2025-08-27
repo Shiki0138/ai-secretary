@@ -196,7 +196,7 @@ export default function ExecutiveDashboard() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {user?.name}様
+                {(user?.name as string) || ''}様
               </span>
               <button
                 onClick={handleLogout}

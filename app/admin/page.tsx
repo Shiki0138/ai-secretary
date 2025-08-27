@@ -149,7 +149,7 @@ export default function AdminDashboard() {
             </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
-                {user?.name || 'Admin'}
+                {(user?.name as string) || 'Admin'}
               </span>
               <button
                 onClick={handleLogout}
