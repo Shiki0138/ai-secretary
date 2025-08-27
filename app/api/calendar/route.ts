@@ -332,7 +332,6 @@ function calculateAvailableSlots(
   const workEnd = 18 // 18:00
   
   // 時間をminutes単位で扱う
-  const dateObj = new Date(date)
   const busySlots = events.map(event => ({
     start: getMinutesFromTime(new Date(event.startTime)),
     end: getMinutesFromTime(new Date(event.endTime))

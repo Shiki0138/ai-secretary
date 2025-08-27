@@ -56,7 +56,7 @@ async function getUserWithTenant(userId: string): Promise<{ userInfo: UserInfo |
 }
 
 // AI分析（テナントコンテキスト付き）
-async function analyzeMessage(message: string, userInfo: UserInfo | null, tenantInfo: any): Promise<MessageAnalysis> {
+async function analyzeMessage(message: string, userInfo: UserInfo | null, tenantInfo: Record<string, unknown> | null): Promise<MessageAnalysis> {
   try {
     const prompt = `あなたは${tenantInfo?.companyName || '企業'}の秘書として、従業員からのメッセージを分析します。
 
@@ -121,7 +121,8 @@ async function handleExecutiveMessage(
   
   // 返信生成
   const replyMessage = await generateExecutiveReply(message, userInfo)
-  await sendLineReply((event as any).replyToken, replyMessage)
+  const replyToken = event['replyToken'] as string
+  await sendLineReply(replyToken, replyMessage)
 }
 
 // 従業員メッセージ処理（テナント対応）
@@ -133,7 +134,7 @@ async function handleEmployeeMessage(
   tenantId: string
 ) {
   // テナント情報取得
-  const tenantInfo = await redis.get(`tenant:${tenantId}:info`)
+  const tenantInfo = await redis.get(`tenant:${tenantId}:info`) as Record<string, unknown> | null
   
   // メッセージをテナント固有のキューに保存
   const messageData = {
@@ -159,7 +160,8 @@ async function handleEmployeeMessage(
   
   // 返信生成
   const replyMessage = await generateEmployeeReply(message, analysis, userInfo)
-  await sendLineReply((event as any).replyToken, replyMessage)
+  const replyToken = event['replyToken'] as string
+  await sendLineReply(replyToken, replyMessage)
 }
 
 // テナント内の経営者への通知
@@ -202,8 +204,9 @@ async function handleUnknownUser(event: Record<string, unknown>, userId: string,
     if (inviteInfo && typeof inviteInfo === 'object') {
       const { tenantId, role } = inviteInfo as { tenantId: string; role: string }
       
+      const replyToken = event['replyToken'] as string
       await sendLineReply(
-        (event as any).replyToken,
+        replyToken,
         `招待コードが確認できました。
         
 続けて以下の情報をお送りください：
@@ -257,8 +260,9 @@ async function handleUnknownUser(event: Record<string, unknown>, userId: string,
       if (response.ok) {
         const result = await response.json()
         
+        const replyToken = event['replyToken'] as string
         await sendLineReply(
-          (event as any).replyToken,
+          replyToken,
           `${name}様、はじめまして。
 
 AI秘書システムへようこそ。
@@ -277,8 +281,9 @@ ${companyName}の経営者として登録完了しました。
   }
   
   // 通常の登録案内
+  const replyToken = event['replyToken'] as string
   await sendLineReply(
-    (event as any).replyToken,
+    replyToken,
     `はじめまして。AI秘書システムです。
 
 【新規登録の場合】

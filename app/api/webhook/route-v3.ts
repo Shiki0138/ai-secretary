@@ -39,7 +39,7 @@ function getReplyToken(event: Record<string, unknown>): string {
 }
 
 // カレンダーアクセス（モック実装）
-async function getExecutiveSchedule(_executiveId: string): Promise<Array<{time: string, available: boolean}>> {
+async function getExecutiveSchedule(): Promise<Array<{time: string, available: boolean}>> {
   // 実際の実装では Google Calendar API を使用
   const mockSchedule = [
     { time: '今日 15:00-16:00', available: true },
@@ -55,7 +55,7 @@ async function getExecutiveSchedule(_executiveId: string): Promise<Array<{time: 
 }
 
 // タスク情報取得（モック実装）
-async function getExecutiveTasks(_executiveId: string): Promise<Array<{task: string, deadline: string, priority: string}>> {
+async function getExecutiveTasks(): Promise<Array<{task: string, deadline: string, priority: string}>> {
   // 実際の実装では Task DB から取得
   return [
     { task: '予算承認', deadline: '今週金曜', priority: 'high' },
@@ -127,7 +127,7 @@ async function executeAutonomousAction(
   switch (analysis.actionType) {
     case 'schedule': {
       // カレンダー確認と日程提案
-      const availableSlots = await getExecutiveSchedule('default')
+      const availableSlots = await getExecutiveSchedule()
       
       if (availableSlots.length === 0) {
         return `${userInfo?.name || ''}様、申し訳ございません。
@@ -169,7 +169,7 @@ ${slotsList}
     
     case 'information': {
       // 情報提供（タスク状況など）
-      const tasks = await getExecutiveTasks('default')
+      const tasks = await getExecutiveTasks()
       
       if (message.includes('タスク') || message.includes('予定')) {
         const taskList = tasks
