@@ -41,16 +41,16 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center gap-6">
               <Link
-                href="/dashboard"
+                href="/lp"
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
               >
-                管理ダッシュボード
+                サービス紹介を見る
               </Link>
               <Link
-                href="https://github.com"
+                href="/dashboard"
                 className="text-gray-600 px-8 py-3 rounded-lg text-lg font-medium hover:text-gray-900 border border-gray-300 hover:border-gray-400 transition-colors"
               >
-                GitHub
+                管理ダッシュボード
               </Link>
             </div>
           </div>
