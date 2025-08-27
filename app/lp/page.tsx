@@ -104,26 +104,32 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-50 opacity-70"></div>
         
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-            もう、休日の電話に<br />
-            <span className="text-blue-600">怯えなくていい。</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-gray-900 mb-6 sm:mb-8 leading-tight px-4">
+            もう、休日の電話に<br className="hidden sm:inline" />
+            <span className="block sm:inline">
+              <span className="text-blue-600">怯えなくていい。</span>
+            </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-700 mb-12 max-w-3xl mx-auto">
-            AI秘書が、あなたの代わりに24時間365日情報を監視。<br />
-            本当に緊急な案件だけを、確実にお知らせします。
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-8 sm:mb-12 max-w-3xl mx-auto px-4">
+            AI秘書が、あなたの代わりに<br className="sm:hidden" />24時間365日情報を監視。<br />
+            本当に緊急な案件だけを、<br className="sm:hidden" />確実にお知らせします。
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col gap-4 justify-center px-4 max-w-md mx-auto sm:max-w-none sm:flex-row">
             <Link
-              href="/dashboard"
-              className="px-8 py-4 bg-blue-600 text-white text-lg font-medium rounded-full hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg"
+              href="/executive/register"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white text-base sm:text-lg font-medium rounded-full hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg text-center"
             >
-              今すぐ無料で始める（最短10分）
+              今すぐ無料で始める<br className="sm:hidden" />
+              <span className="hidden sm:inline">（最短10分）</span>
             </Link>
-            <button className="px-8 py-4 bg-white text-gray-800 text-lg font-medium rounded-full hover:bg-gray-50 transition-all border border-gray-300 shadow-md">
-              資料をダウンロード
-            </button>
+            <Link
+              href="/demo"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-gray-800 text-base sm:text-lg font-medium rounded-full hover:bg-gray-50 transition-all border border-gray-300 shadow-md text-center"
+            >
+              デモを体験する
+            </Link>
           </div>
           
           <p className="mt-6 text-gray-600">
@@ -141,41 +147,41 @@ export default function LandingPage() {
       {/* Problem Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            経営者の97%が抱える、<br className="sm:hidden" />情報管理の悩み
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-gray-900 mb-4 px-4">
+            経営者の97%が抱える、<br />情報管理の悩み
           </h2>
-          <p className="text-xl text-gray-600 text-center mb-16">
-            あなたも、こんな課題を感じていませんか？
+          <p className="text-lg sm:text-xl text-gray-600 text-center mb-12 sm:mb-16 px-4">
+            あなたも、こんな課題を<br className="sm:hidden" />感じていませんか？
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105">
-              <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                重要な連絡が埋もれてしまう
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105">
+              <div className="text-3xl sm:text-4xl mb-4">📱</div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
+                重要な連絡が<br className="sm:hidden" />埋もれてしまう
               </h3>
-              <p className="text-gray-600">
-                日々大量のメッセージの中から、本当に重要なものを見つけ出すのは至難の業
+              <p className="text-sm sm:text-base text-gray-600">
+                日々大量のメッセージの中から、<br className="sm:hidden" />本当に重要なものを<br className="sm:hidden" />見つけ出すのは至難の業
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105">
-              <div className="text-4xl mb-4">⏰</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                24時間気が休まらない
+            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105">
+              <div className="text-3xl sm:text-4xl mb-4">⏰</div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
+                24時間気が<br className="sm:hidden" />休まらない
               </h3>
-              <p className="text-gray-600">
-                休日でも緊急連絡が気になり、真の意味でのリフレッシュができない
+              <p className="text-sm sm:text-base text-gray-600">
+                休日でも緊急連絡が気になり、<br className="sm:hidden" />真の意味での<br className="sm:hidden" />リフレッシュができない
               </p>
             </div>
             
-            <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105">
-              <div className="text-4xl mb-4">💸</div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                対応の遅れによる機会損失
+            <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg transform transition-all hover:scale-105 sm:col-span-2 md:col-span-1">
+              <div className="text-3xl sm:text-4xl mb-4">💸</div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">
+                対応の遅れによる<br className="sm:hidden" />機会損失
               </h3>
-              <p className="text-gray-600">
-                重要な判断の遅れが、年間数千万円規模の損失につながることも
+              <p className="text-sm sm:text-base text-gray-600">
+                重要な判断の遅れが、<br className="sm:hidden" />年間数千万円規模の<br className="sm:hidden" />損失につながることも
               </p>
             </div>
           </div>
@@ -248,41 +254,23 @@ export default function LandingPage() {
             <div className="hidden md:block absolute top-24 right-1/3 w-1/3 h-0.5 bg-gradient-to-r from-blue-400 to-blue-500"></div>
           </div>
           
-          {/* Screenshot Section */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gray-50 p-4 rounded-lg shadow-md">
-              <div className="bg-white rounded-lg p-6">
-                <div className="text-sm text-gray-500 mb-2">LINE通知画面</div>
-                <div className="bg-green-50 p-4 rounded-lg mb-2">
-                  <div className="text-sm text-gray-700">AI秘書より</div>
-                  <div className="mt-2 text-gray-900">
-                    🚨 緊急案件<br />
-                    「システム障害発生、顧客影響あり」<br />
-                    即座の対応が必要です。
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg shadow-md">
-              <div className="bg-white rounded-lg p-6">
-                <div className="text-sm text-gray-500 mb-2">管理ダッシュボード</div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded">
-                    <span className="text-sm font-medium">緊急</span>
-                    <span className="text-red-600 font-bold">2件</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-orange-50 rounded">
-                    <span className="text-sm font-medium">高</span>
-                    <span className="text-orange-600 font-bold">5件</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
-                    <span className="text-sm font-medium">通常</span>
-                    <span className="text-blue-600 font-bold">23件</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Interactive Demo Section */}
+          <div className="mt-16 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              実際のやりとりを体験
+            </h3>
+            <p className="text-gray-600 mb-8">
+              LINEでのリアルなやりとりをデモでご確認いただけます
+            </p>
+            <Link
+              href="/demo"
+              className="inline-flex items-center px-8 py-4 bg-green-600 text-white text-lg font-medium rounded-full hover:bg-green-700 transition-all transform hover:scale-105 shadow-lg"
+            >
+              <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51-.173-.008-.372-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
+              </svg>
+              LINEデモを体験する
+            </Link>
           </div>
         </div>
       </section>
@@ -695,6 +683,18 @@ export default function LandingPage() {
                 必要に応じてエクスポートすることができます。
               </div>
             </details>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link
+              href="/faq"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+            >
+              その他のよくある質問を見る
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
       </section>
