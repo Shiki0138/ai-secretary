@@ -15,7 +15,7 @@ const redis = new Redis({
 const GOOGLE_OAUTH_CONFIG = {
   clientId: process.env.GOOGLE_CLIENT_ID || 'your-client-id',
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'your-client-secret',
-  redirectUri: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + '/api/google-calendar',
+  redirectUri: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + '/api/google-calendar/callback',
   scopes: [
     'https://www.googleapis.com/auth/calendar.readonly',
     'https://www.googleapis.com/auth/calendar.events'
@@ -316,66 +316,14 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const code = searchParams.get('code')
-    const state = searchParams.get('state')
-    const error = searchParams.get('error')
-    
-    // OAuth認証コールバック処理
-    if (code && state) {
-      try {
-        // 認証コードでアクセストークン取得
-        const tokenData = await getAccessToken(code)
-        
-        // stateからテナントIDとユーザーIDを取得
-        const [tenantId, executiveId] = state.split(':')
-        
-        // トークンを保存
-        await redis.set(
-          `tenant:${tenantId}:executive:${executiveId}:google_token`,
-          {
-            access_token: tokenData.access_token,
-            refresh_token: tokenData.refresh_token,
-            expires_at: Date.now() + tokenData.expires_in * 1000
-          },
-          { ex: 86400 * 30 } // 30日間保存
-        )
-        
-        // 成功ページにリダイレクト
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/executive?tab=calendar&connected=true`
-        )
-        
-      } catch (err) {
-        console.error('OAuth callback error:', err)
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/executive?tab=calendar&error=auth_failed`
-        )
-      }
+  return NextResponse.json({
+    status: 'ready',
+    message: 'Google Calendar Integration API',
+    actions: {
+      connect: 'Connect to Google Calendar',
+      disconnect: 'Disconnect from Google Calendar',
+      sync_events: 'Sync events from Google Calendar',
+      check_connection: 'Check connection status'
     }
-    
-    if (error) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/executive?tab=calendar&error=${error}`
-      )
-    }
-    
-    return NextResponse.json({
-      status: 'ready',
-      message: 'Google Calendar Integration API',
-      actions: {
-        connect: 'Connect to Google Calendar',
-        disconnect: 'Disconnect from Google Calendar',
-        sync_events: 'Sync events from Google Calendar',
-        check_connection: 'Check connection status'
-      }
-    })
-    
-  } catch (error) {
-    console.error('Google Calendar GET error:', error)
-    return NextResponse.json({
-      error: 'Failed to process request'
-    }, { status: 500 })
-  }
+  })
 }
