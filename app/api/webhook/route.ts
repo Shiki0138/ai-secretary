@@ -40,17 +40,18 @@ async function getUserRole(userId: string): Promise<{ role: UserRole; userInfo: 
       // 経営者リストを確認
       const executives = await redis.smembers('executives') || []
       if (executives.includes(userId)) {
-        return { role: 'executive', userInfo }
+        return { role: 'executive', userInfo: userInfo as Record<string, unknown> }
       }
       
       // roleフィールドで判定
-      if ('role' in userInfo) {
-        if (userInfo.role === 'executive' || userInfo.role === '経営者' || userInfo.role === 'CEO' || userInfo.role === '社長') {
-          return { role: 'executive', userInfo }
+      if ('role' in (userInfo as Record<string, unknown>)) {
+        const role = (userInfo as Record<string, unknown>)['role']
+        if (role === 'executive' || role === '経営者' || role === 'CEO' || role === '社長') {
+          return { role: 'executive', userInfo: userInfo as Record<string, unknown> }
         }
       }
       
-      return { role: 'employee', userInfo }
+      return { role: 'employee', userInfo: userInfo as Record<string, unknown> }
     }
     
     // 未登録ユーザー
@@ -348,7 +349,7 @@ async function handleExecutiveMessage(event: Record<string, unknown>, userId: st
   }
   
   // LINE返信
-  await sendLineReply(event.replyToken, replyMessage)
+  await sendLineReply((event as Record<string, unknown>)['replyToken'] as string, replyMessage)
 }
 
 // 従業員メッセージ処理
@@ -387,11 +388,67 @@ async function handleEmployeeMessage(event: Record<string, unknown>, userId: str
   }
   
   // LINE返信
-  await sendLineReply(event.replyToken, replyMessage)
+  await sendLineReply((event as Record<string, unknown>)['replyToken'] as string, replyMessage)
 }
 
 // 未登録ユーザー処理
 async function handleUnknownUser(event: Record<string, unknown>, userId: string, message: string) {
+  // 自動登録の試み - パターンをより柔軟に
+  const patterns = [
+    /(.+)です。.*合同会社\s*([^\s]+).*の.*経営者/,
+    /(.+)です。.*会社\s*([^\s]+).*の.*経営者/,
+    /(.+)です。.*([^\s]+).*の.*経営者/,
+    /(.+)です。.*([^\s]+).*経営者/,
+    /(.+)です。.*([^\s]+).*CEO/,
+    /(.+)です。.*([^\s]+).*社長/,
+    /(.+)です。.*([^\s]+).*で(.+)[をしています|です]/
+  ]
+  
+  for (const pattern of patterns) {
+    const match = message.match(pattern)
+    if (match) {
+      const name = match[1].trim()
+      const company = match[2] ? match[2].trim() : '不明'
+      const roleOrPosition = match[3] ? match[3].trim() : (message.includes('経営者') || message.includes('CEO') || message.includes('社長') ? '経営者' : '不明')
+      
+      const isExecutive = ['CEO', '社長', '経営者', '代表'].some(keyword => 
+        message.includes(keyword)
+      )
+      
+      // 自動登録
+      const userInfo = {
+        userId,
+        name,
+        company,
+        department: roleOrPosition.includes('部') ? roleOrPosition : '',
+        role: isExecutive ? 'executive' : 'employee',
+        registeredAt: new Date().toISOString()
+      }
+      
+      await redis.set(`user:${userId}`, userInfo)
+      
+      if (isExecutive) {
+        await redis.sadd('executives', userId)
+      } else {
+        await redis.sadd('employees', userId)
+      }
+      
+      const roleText = isExecutive ? '経営者' : '従業員'
+      await sendLineReply(
+        (event as Record<string, unknown>)['replyToken'] as string,
+        `${name}様、はじめまして。
+        
+AI秘書システムへようこそ。
+${roleText}として登録させていただきました。
+
+どのようなご用件でしょうか？`
+      )
+      
+      return
+    }
+  }
+  
+  // 自動登録できない場合
   const replyMessage = `はじめまして。AI秘書システムです。
 
 ご利用を開始するには、以下の情報をお送りください：
@@ -403,7 +460,7 @@ async function handleUnknownUser(event: Record<string, unknown>, userId: string,
 
 ご登録後、すぐにご利用いただけます。`
 
-  await sendLineReply(event.replyToken, replyMessage)
+  await sendLineReply((event as Record<string, unknown>)['replyToken'] as string, replyMessage)
   
   // 登録プロセスの開始を記録
   await redis.set(`registration:${userId}`, JSON.stringify({

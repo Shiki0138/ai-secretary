@@ -32,6 +32,12 @@ interface MessageAnalysis {
   requiresApproval: boolean
 }
 
+// Utility: safely extract replyToken from LINE event
+function getReplyToken(event: Record<string, unknown>): string {
+  const token = (event as Record<string, unknown>)['replyToken']
+  return typeof token === 'string' ? token : ''
+}
+
 // カレンダーアクセス（モック実装）
 async function getExecutiveSchedule(_executiveId: string): Promise<Array<{time: string, available: boolean}>> {
   // 実際の実装では Google Calendar API を使用
@@ -360,10 +366,12 @@ async function handleExecutiveMessage(
     })
     
     const replyMessage = response.choices[0].message.content || '承知いたしました。'
-    await sendLineReply(event.replyToken, replyMessage)
+    const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+    await sendLineReply(token, replyMessage)
     
   } catch {
-    await sendLineReply(event.replyToken, '承知いたしました。対応いたします。')
+    const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+    await sendLineReply(token, '承知いたしました。対応いたします。')
   }
 }
 
@@ -381,7 +389,8 @@ async function handleApprovalCommand(
   const approvalRequest = await redis.get(`approval:${approvalId}`)
   
   if (!approvalRequest) {
-    await sendLineReply(event.replyToken, '該当する承認依頼が見つかりません。')
+    const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+    await sendLineReply(token, '該当する承認依頼が見つかりません。')
     return
   }
   
@@ -390,14 +399,20 @@ async function handleApprovalCommand(
   switch (action) {
     case '承認':
       // 従業員に提案回答を送信
-      await sendLineNotification(request.employeeId, request.proposedResponse)
-      await sendLineReply(event.replyToken, '承認しました。従業員に回答を送信しました。')
+      await sendLineNotification(request.employeeId as string, request.proposedResponse as string)
+      {
+        const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+        await sendLineReply(token, '承認しました。従業員に回答を送信しました。')
+      }
       break
       
     case '修正':
       // 修正内容で従業員に回答
-      await sendLineNotification(request.employeeId, additionalInfo || request.proposedResponse)
-      await sendLineReply(event.replyToken, '修正内容で回答しました。')
+      await sendLineNotification(request.employeeId as string, (additionalInfo || (request.proposedResponse as string)) )
+      {
+        const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+        await sendLineReply(token, '修正内容で回答しました。')
+      }
       break
       
     case '却下':
@@ -406,8 +421,11 @@ async function handleApprovalCommand(
 ${additionalInfo || '現時点では対応が難しい状況です。'}
 
 別の方法をご検討いただくか、改めてご相談ください。`
-      await sendLineNotification(request.employeeId, rejectMessage)
-      await sendLineReply(event.replyToken, '却下理由を従業員に伝えました。')
+      await sendLineNotification(request.employeeId as string, rejectMessage)
+      {
+        const token = typeof (event as Record<string, unknown>)['replyToken'] === 'string' ? (event as Record<string, unknown>)['replyToken'] as string : ''
+        await sendLineReply(token, '却下理由を従業員に伝えました。')
+      }
       break
   }
   
@@ -441,7 +459,7 @@ async function handleEmployeeMessage(
   const replyMessage = await executeAutonomousAction(analysis, message, userInfo, userId)
   
   // LINE返信
-  await sendLineReply(event.replyToken, replyMessage)
+  await sendLineReply(getReplyToken(event), replyMessage)
   
   // 高優先度の場合は経営者に通知（承認不要な場合）
   if (analysis.priority === 'urgent' && !analysis.requiresApproval) {
@@ -495,7 +513,7 @@ async function handleUnknownUser(event: Record<string, unknown>, userId: string,
     
     const roleText = isExecutive ? '経営者' : '従業員'
     await sendLineReply(
-      event.replyToken,
+      getReplyToken(event),
       `${name}様、はじめまして。
       
 AI秘書システムへようこそ。
@@ -517,7 +535,7 @@ ${roleText}として登録させていただきました。
 
 例：「山田太郎です。ABC商事の営業部で部長をしています。」`
 
-  await sendLineReply(event.replyToken, replyMessage)
+  await sendLineReply(getReplyToken(event), replyMessage)
 }
 
 // LINE返信送信（v2から継承）
@@ -558,7 +576,7 @@ export async function POST(request: NextRequest) {
         if (role === 'unknown') {
           await handleUnknownUser(event, userId, message)
         } else if (role === 'executive') {
-          await handleExecutiveMessage(event, userId, message, userInfo)
+          await handleExecutiveMessage(event, userId, message)
         } else {
           await handleEmployeeMessage(event, userId, message, userInfo)
         }

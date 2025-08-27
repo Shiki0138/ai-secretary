@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
     }
     
-  } catch {
+  } catch (error) {
     console.error('User setup error:', error)
     return NextResponse.json({
       error: 'Setup failed',
