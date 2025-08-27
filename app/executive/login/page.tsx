@@ -42,7 +42,7 @@ export default function ExecutiveLogin() {
       // ダッシュボードへリダイレクト
       router.push('/executive')
 
-    } catch (error) {
+    } catch {
       setError('システムエラーが発生しました')
     } finally {
       setLoading(false)

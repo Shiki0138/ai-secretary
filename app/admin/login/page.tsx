@@ -45,7 +45,7 @@ export default function AdminLogin() {
       // ダッシュボードへリダイレクト
       router.push('/admin')
 
-    } catch (error) {
+    } catch {
       setError('システムエラーが発生しました')
     } finally {
       setLoading(false)

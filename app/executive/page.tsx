@@ -74,7 +74,7 @@ export default function ExecutiveDashboard() {
 
       setUser(result.user)
       loadDashboardData(result.user.tenantId)
-    } catch (error) {
+    } catch {
       router.push('/executive/login')
     }
   }
@@ -141,8 +141,8 @@ export default function ExecutiveDashboard() {
       }
 
       setLoading(false)
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error)
+    } catch {
+      console.error('Failed to load dashboard data')
       setLoading(false)
     }
   }

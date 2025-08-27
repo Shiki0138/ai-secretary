@@ -22,7 +22,7 @@ interface User {
 export default function AdminDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<Record<string, unknown> | null>(null)
   const [tenants, setTenants] = useState<Tenant[]>([])
   const [selectedTenant, setSelectedTenant] = useState<string | null>(null)
   const [tenantUsers, setTenantUsers] = useState<User[]>([])
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
       }
 
       setUser(result.user)
-    } catch (error) {
+    } catch {
       router.push('/admin/login')
     }
   }
@@ -82,8 +82,8 @@ export default function AdminDashboard() {
       }
 
       setLoading(false)
-    } catch (error) {
-      console.error('Failed to load data:', error)
+    } catch {
+      console.error('Failed to load data')
       setLoading(false)
     }
   }

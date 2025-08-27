@@ -46,7 +46,7 @@ export default function ExecutiveRegister() {
       // ダッシュボードへリダイレクト
       router.push('/executive')
 
-    } catch (error) {
+    } catch {
       setError('システムエラーが発生しました')
     } finally {
       setLoading(false)
