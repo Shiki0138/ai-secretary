@@ -202,8 +202,8 @@ export async function POST(request: NextRequest) {
         })
       }
       
-      case 'sync_events': {
-        const { tenantId, executiveId, startDate, endDate } = data
+      case 'get_calendars': {
+        const { tenantId, executiveId } = data
         
         if (!tenantId || !executiveId) {
           return NextResponse.json({
@@ -212,32 +212,98 @@ export async function POST(request: NextRequest) {
         }
         
         try {
-          // Google Calendarからイベント取得
-          const params = new URLSearchParams({
-            timeMin: startDate || new Date().toISOString(),
-            timeMax: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            singleEvents: 'true',
-            orderBy: 'startTime',
-            maxResults: '100'
-          })
-          
+          // 利用可能なカレンダーリストを取得
           const response = await callGoogleCalendarAPI(
             tenantId,
             executiveId,
-            `/calendars/primary/events?${params.toString()}`
+            '/users/me/calendarList'
           )
           
           if (!response.ok) {
-            throw new Error('Google Calendar API error')
+            throw new Error('Failed to get calendar list')
           }
           
           const result = await response.json()
-          const googleEvents: GoogleCalendarEvent[] = result.items || []
+          const calendars = result.items || []
+          
+          // カレンダー情報を整形
+          const calendarList = calendars.map((cal: Record<string, any>) => ({
+            id: cal.id,
+            summary: cal.summary,
+            backgroundColor: cal.backgroundColor,
+            foregroundColor: cal.foregroundColor,
+            selected: cal.selected || false,
+            primary: cal.primary || false
+          }))
+          
+          return NextResponse.json({
+            calendars: calendarList,
+            message: '利用可能なカレンダーを取得しました'
+          })
+          
+        } catch (error) {
+          return NextResponse.json({
+            error: 'カレンダーリストの取得に失敗しました',
+            details: error instanceof Error ? error.message : 'Unknown error'
+          }, { status: 500 })
+        }
+      }
+      
+      case 'sync_events': {
+        const { tenantId, executiveId, startDate, endDate, calendarIds = [] } = data
+        
+        if (!tenantId || !executiveId) {
+          return NextResponse.json({
+            error: 'Missing required fields'
+          }, { status: 400 })
+        }
+        
+        try {
+          // 同期するカレンダーIDリスト（指定がない場合はprimaryのみ）
+          const calendarsToSync = calendarIds && calendarIds.length > 0 
+            ? calendarIds 
+            : ['primary']
+          
+          // 各カレンダーからイベントを取得
+          let allGoogleEvents: GoogleCalendarEvent[] = []
+          
+          for (const calendarId of calendarsToSync) {
+            const params = new URLSearchParams({
+              timeMin: startDate || new Date().toISOString(),
+              timeMax: endDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+              singleEvents: 'true',
+              orderBy: 'startTime',
+              maxResults: '100'
+            })
+            
+            const response = await callGoogleCalendarAPI(
+              tenantId,
+              executiveId,
+              `/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`
+            )
+            
+            if (response.ok) {
+              const result = await response.json()
+              const events = result.items || []
+              // カレンダーIDを各イベントに追加
+              events.forEach((event: Record<string, any>) => {
+                event.calendarId = calendarId
+              })
+              allGoogleEvents = allGoogleEvents.concat(events)
+            }
+          }
+          
+          // 時間順にソート
+          allGoogleEvents.sort((a, b) => {
+            const aTime = new Date(a.start.dateTime || a.start.date).getTime()
+            const bTime = new Date(b.start.dateTime || b.start.date).getTime()
+            return aTime - bTime
+          })
           
           // 内部カレンダーに同期
           const syncedEvents = []
           
-          for (const gEvent of googleEvents) {
+          for (const gEvent of allGoogleEvents) {
             if (gEvent.status === 'cancelled') continue
             
             // 内部フォーマットに変換
@@ -272,7 +338,8 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
             message: `${syncedEvents.length}件のイベントを同期しました`,
             syncedEvents: syncedEvents.length,
-            totalGoogleEvents: googleEvents.length
+            totalGoogleEvents: allGoogleEvents.length,
+            calendarsSync: calendarsToSync
           })
           
         } catch (error) {

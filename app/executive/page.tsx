@@ -91,6 +91,14 @@ export default function ExecutiveDashboard() {
   })
   const [googleConnected, setGoogleConnected] = useState(false)
   const [googleSyncLoading, setGoogleSyncLoading] = useState(false)
+  const [googleCalendars, setGoogleCalendars] = useState<Array<{
+    id: string
+    summary: string
+    backgroundColor: string
+    selected: boolean
+    primary: boolean
+  }>>([])
+  const [showCalendarSelector, setShowCalendarSelector] = useState(false)
 
   useEffect(() => {
     checkAuth()
@@ -394,14 +402,13 @@ export default function ExecutiveDashboard() {
     }
   }
 
-  const syncGoogleCalendar = async () => {
-    setGoogleSyncLoading(true)
+  const loadGoogleCalendars = async () => {
     try {
       const response = await fetch('/api/google-calendar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'sync_events',
+          action: 'get_calendars',
           data: {
             tenantId: user?.tenantId,
             executiveId: user?.userId
@@ -411,9 +418,51 @@ export default function ExecutiveDashboard() {
 
       if (response.ok) {
         const result = await response.json()
+        setGoogleCalendars(result.calendars.map((cal: any) => ({
+          ...cal,
+          selected: cal.primary // デフォルトでプライマリカレンダーを選択
+        })))
+        setShowCalendarSelector(true)
+      }
+    } catch (error) {
+      console.error('Failed to load calendars:', error)
+      alert('カレンダーリストの取得に失敗しました')
+    }
+  }
+
+  const syncGoogleCalendar = async () => {
+    setGoogleSyncLoading(true)
+    try {
+      // 選択されたカレンダーIDを取得
+      const selectedCalendarIds = googleCalendars
+        .filter(cal => cal.selected)
+        .map(cal => cal.id)
+
+      if (selectedCalendarIds.length === 0) {
+        alert('同期するカレンダーを選択してください')
+        setGoogleSyncLoading(false)
+        return
+      }
+
+      const response = await fetch('/api/google-calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sync_events',
+          data: {
+            tenantId: user?.tenantId,
+            executiveId: user?.userId,
+            calendarIds: selectedCalendarIds
+          }
+        })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
         alert(result.message)
         // カレンダー表示を更新
         loadDashboardData(user?.tenantId as string, user?.userId as string)
+        setShowCalendarSelector(false)
       } else {
         alert('同期に失敗しました')
       }
@@ -946,11 +995,11 @@ export default function ExecutiveDashboard() {
                     
                     <div className="flex gap-3">
                       <button
-                        onClick={syncGoogleCalendar}
+                        onClick={loadGoogleCalendars}
                         disabled={googleSyncLoading}
                         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {googleSyncLoading ? '同期中...' : '📅 今すぐ同期'}
+                        {googleSyncLoading ? '同期中...' : '📅 カレンダーを選択して同期'}
                       </button>
                       <button
                         onClick={disconnectGoogleCalendar}
@@ -959,6 +1008,62 @@ export default function ExecutiveDashboard() {
                         連携解除
                       </button>
                     </div>
+                    
+                    {/* カレンダー選択モーダル */}
+                    {showCalendarSelector && (
+                      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 max-w-lg w-full">
+                          <h3 className="text-lg font-semibold mb-4">同期するカレンダーを選択</h3>
+                          <div className="space-y-2 max-h-96 overflow-y-auto">
+                            {googleCalendars.map((calendar) => (
+                              <label key={calendar.id} className="flex items-center p-3 border rounded-lg hover:bg-gray-50">
+                                <input
+                                  type="checkbox"
+                                  checked={calendar.selected}
+                                  onChange={(e) => {
+                                    setGoogleCalendars(prev =>
+                                      prev.map(cal =>
+                                        cal.id === calendar.id
+                                          ? { ...cal, selected: e.target.checked }
+                                          : cal
+                                      )
+                                    )
+                                  }}
+                                  className="mr-3"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="w-4 h-4 rounded"
+                                    style={{ backgroundColor: calendar.backgroundColor }}
+                                  />
+                                  <span className="font-medium">{calendar.summary}</span>
+                                  {calendar.primary && (
+                                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                      メイン
+                                    </span>
+                                  )}
+                                </div>
+                              </label>
+                            ))}
+                          </div>
+                          <div className="flex justify-end gap-3 mt-6">
+                            <button
+                              onClick={() => setShowCalendarSelector(false)}
+                              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                              キャンセル
+                            </button>
+                            <button
+                              onClick={syncGoogleCalendar}
+                              disabled={googleSyncLoading || googleCalendars.filter(c => c.selected).length === 0}
+                              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                              選択したカレンダーを同期
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
