@@ -61,7 +61,6 @@ export default function DemoPage() {
   const [currentScenario, setCurrentScenario] = useState<keyof typeof scenarios>('employee')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isPlaying, setIsPlaying] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
 
   const demoSteps = {
     employee: [
@@ -122,20 +121,17 @@ export default function DemoPage() {
 
   useEffect(() => {
     setMessages(scenarios[currentScenario].initialMessages)
-    setCurrentStep(0)
     setIsPlaying(false)
   }, [currentScenario])
 
   const playDemo = () => {
     if (isPlaying) return
     setIsPlaying(true)
-    setCurrentStep(0)
 
     const steps = demoSteps[currentScenario]
     steps.forEach((step, index) => {
       setTimeout(() => {
         setMessages(prev => [...prev, step])
-        setCurrentStep(index + 1)
         if (index === steps.length - 1) {
           setIsPlaying(false)
         }
@@ -145,7 +141,6 @@ export default function DemoPage() {
 
   const resetDemo = () => {
     setMessages(scenarios[currentScenario].initialMessages)
-    setCurrentStep(0)
     setIsPlaying(false)
   }
 

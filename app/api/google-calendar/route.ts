@@ -58,30 +58,6 @@ function generateAuthUrl(tenantId: string, executiveId: string): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 
-// アクセストークン取得
-async function getAccessToken(code: string): Promise<{
-  access_token: string
-  refresh_token: string
-  expires_in: number
-}> {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      client_id: GOOGLE_OAUTH_CONFIG.clientId,
-      client_secret: GOOGLE_OAUTH_CONFIG.clientSecret,
-      code,
-      grant_type: 'authorization_code',
-      redirect_uri: GOOGLE_OAUTH_CONFIG.redirectUri
-    }).toString()
-  })
-  
-  if (!response.ok) {
-    throw new Error('Failed to get access token')
-  }
-  
-  return response.json()
-}
 
 // リフレッシュトークンでアクセストークンを更新
 async function refreshAccessToken(refreshToken: string): Promise<{
@@ -142,7 +118,7 @@ async function callGoogleCalendarAPI(
         },
         { ex: 86400 * 30 }
       )
-    } catch (error) {
+    } catch {
       throw new Error('Failed to refresh Google access token')
     }
   }
@@ -227,7 +203,7 @@ export async function POST(request: NextRequest) {
           const calendars = result.items || []
           
           // カレンダー情報を整形
-          const calendarList = calendars.map((cal: Record<string, any>) => ({
+          const calendarList = calendars.map((cal: Record<string, unknown>) => ({
             id: cal.id,
             summary: cal.summary,
             backgroundColor: cal.backgroundColor,
@@ -286,7 +262,7 @@ export async function POST(request: NextRequest) {
               const result = await response.json()
               const events = result.items || []
               // カレンダーIDを各イベントに追加
-              events.forEach((event: Record<string, any>) => {
+              events.forEach((event: Record<string, unknown>) => {
                 event.calendarId = calendarId
               })
               allGoogleEvents = allGoogleEvents.concat(events)
@@ -295,8 +271,8 @@ export async function POST(request: NextRequest) {
           
           // 時間順にソート
           allGoogleEvents.sort((a, b) => {
-            const aTime = new Date(a.start.dateTime || a.start.date).getTime()
-            const bTime = new Date(b.start.dateTime || b.start.date).getTime()
+            const aTime = new Date(a.start.dateTime || a.start.date || '').getTime()
+            const bTime = new Date(b.start.dateTime || b.start.date || '').getTime()
             return aTime - bTime
           })
           
@@ -382,7 +358,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
     status: 'ready',
     message: 'Google Calendar Integration API',

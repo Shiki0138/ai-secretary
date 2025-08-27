@@ -284,7 +284,7 @@ export default function ExecutiveDashboard() {
     }
   }
 
-  const createTask = async () => {
+  /*const createTask = async () => {
     if (!newTask.title || !newTask.assignedTo) {
       alert('タスク名と担当者は必須です')
       return
@@ -325,7 +325,7 @@ export default function ExecutiveDashboard() {
       console.error('Task creation error:', error)
       alert('タスクの作成に失敗しました')
     }
-  }
+  }*/
 
   const updateTaskStatus = async (taskId: string, status: Task['status']) => {
     try {
@@ -572,7 +572,7 @@ export default function ExecutiveDashboard() {
 
       if (response.ok) {
         const result = await response.json()
-        setGoogleCalendars(result.calendars.map((cal: any) => ({
+        setGoogleCalendars(result.calendars.map((cal: { id: string; summary: string; backgroundColor: string; selected?: boolean; primary?: boolean }) => ({
           ...cal,
           selected: cal.primary // デフォルトでプライマリカレンダーを選択
         })))

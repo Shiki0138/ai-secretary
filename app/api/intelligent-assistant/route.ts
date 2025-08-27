@@ -128,8 +128,7 @@ ${pastPatterns.slice(0, 5).join('\n')}
 // 従業員報告の要約・箇条書き化
 async function summarizeEmployeeReport(
   report: string, 
-  employeeInfo: Record<string, unknown>,
-  tenantId: string
+  employeeInfo: Record<string, unknown>
 ): Promise<{
   summary: string
   bulletPoints: string[]
@@ -252,9 +251,9 @@ export async function POST(request: NextRequest) {
       }
       
       case 'process_employee_report': {
-        const { tenantId, employeeInfo, report } = data
+        const { employeeInfo, report } = data
         
-        const summary = await summarizeEmployeeReport(report, employeeInfo, tenantId)
+        const summary = await summarizeEmployeeReport(report, employeeInfo)
         
         // 経営者への通知メッセージを作成
         const executiveNotification = `📋 ${employeeInfo.name}様からの報告\n\n【要約】\n${summary.summary}\n\n【重要ポイント】\n${summary.bulletPoints.map(point => `• ${point}`).join('\n')}\n\n${summary.actionItems.length > 0 ? `【必要なアクション】\n${summary.actionItems.map(item => `• ${item}`).join('\n')}\n\n` : ''}${summary.needsExecutiveDecision ? '⚠️ 経営判断が必要な案件です' : ''}`
