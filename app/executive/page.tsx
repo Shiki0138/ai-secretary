@@ -32,8 +32,8 @@ interface CalendarEvent {
 export default function ExecutiveDashboard() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [tenantInfo, setTenantInfo] = useState<any>(null)
+  const [user, setUser] = useState<Record<string, unknown> | null>(null)
+  const [tenantInfo, setTenantInfo] = useState<Record<string, unknown> | null>(null)
   const [employees, setEmployees] = useState<Employee[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [todayEvents, setTodayEvents] = useState<CalendarEvent[]>([])
@@ -42,6 +42,7 @@ export default function ExecutiveDashboard() {
 
   useEffect(() => {
     checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const checkAuth = async () => {

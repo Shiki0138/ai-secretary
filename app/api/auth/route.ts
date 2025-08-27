@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
         await redis.set(`session:${sessionId}`, session, { ex: SESSION_EXPIRY })
         
         // ユーザー情報からパスワードを除外して返す
-        const { hashedPassword: _, ...safeUser } = userObj
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hashedPassword, ...safeUser } = userObj
         
         return NextResponse.json({
           message: 'Login successful',
@@ -234,7 +235,8 @@ export async function POST(request: NextRequest) {
           }, { status: 404 })
         }
         
-        const { hashedPassword: _, ...safeUser } = user as Record<string, unknown>
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { hashedPassword, ...safeUser } = user as Record<string, unknown>
         
         return NextResponse.json({
           valid: true,
