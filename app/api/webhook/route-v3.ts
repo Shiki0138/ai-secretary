@@ -258,7 +258,7 @@ async function generateProposedResponse(
 }
 
 // 経営者への承認依頼通知
-async function notifyExecutiveForApproval(approvalRequest: any) {
+async function notifyExecutiveForApproval(approvalRequest: Record<string, unknown>) {
   const executives = await redis.smembers('executives') || []
   
   for (const executiveId of executives) {
@@ -330,10 +330,9 @@ async function getUserRole(userId: string): Promise<{ role: UserRole; userInfo: 
 
 // 経営者メッセージ処理（承認対応追加）
 async function handleExecutiveMessage(
-  event: Record<string, any>,
+  event: Record<string, unknown>,
   userId: string,
-  message: string,
-  userInfo: Record<string, unknown> | null
+  message: string
 ) {
   // 承認コマンドチェック
   if (message.startsWith('承認 ') || message.startsWith('修正 ') || message.startsWith('却下 ')) {
@@ -362,14 +361,14 @@ async function handleExecutiveMessage(
     const replyMessage = response.choices[0].message.content || '承知いたしました。'
     await sendLineReply(event.replyToken, replyMessage)
     
-  } catch (error) {
+  } catch {
     await sendLineReply(event.replyToken, '承知いたしました。対応いたします。')
   }
 }
 
 // 承認コマンド処理
 async function handleApprovalCommand(
-  event: Record<string, any>,
+  event: Record<string, unknown>,
   executiveId: string,
   command: string
 ) {
@@ -385,7 +384,7 @@ async function handleApprovalCommand(
     return
   }
   
-  const request = approvalRequest as any
+  const request = approvalRequest as Record<string, unknown>
   
   switch (action) {
     case '承認':
@@ -417,7 +416,7 @@ ${additionalInfo || '現時点では対応が難しい状況です。'}
 
 // 従業員メッセージ処理（自律的アクション対応）
 async function handleEmployeeMessage(
-  event: Record<string, any>,
+  event: Record<string, unknown>,
   userId: string,
   message: string,
   userInfo: Record<string, unknown> | null
@@ -461,7 +460,7 @@ ${replyMessage}`
 }
 
 // 未登録ユーザー処理（v2から継承）
-async function handleUnknownUser(event: Record<string, any>, userId: string, message: string) {
+async function handleUnknownUser(event: Record<string, unknown>, userId: string, message: string) {
   // 自動登録の試み
   const registrationPattern = /(.+)です。(.+)の(.+)[をしています|です]/
   const match = message.match(registrationPattern)

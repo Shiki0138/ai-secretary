@@ -303,7 +303,7 @@ export async function POST(request: NextRequest) {
         // 役割に応じた処理
         if (role === 'executive') {
           // 経営者からのメッセージ
-          await handleExecutiveMessage(event, userId, message, userInfo)
+          await handleExecutiveMessage(event, userId, message)
         } else {
           // 従業員からのメッセージ
           await handleEmployeeMessage(event, userId, message, userInfo)
@@ -320,7 +320,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 経営者メッセージ処理
-async function handleExecutiveMessage(event: Record<string, unknown>, userId: string, message: string, userInfo: Record<string, unknown> | null) {
+async function handleExecutiveMessage(event: Record<string, unknown>, userId: string, message: string) {
   // メッセージ保存
   const messageData = {
     id: Date.now().toString(),
