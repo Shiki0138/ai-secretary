@@ -320,7 +320,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 経営者メッセージ処理
-async function handleExecutiveMessage(event: Record<string, any>, userId: string, message: string, userInfo: Record<string, unknown> | null) {
+async function handleExecutiveMessage(event: Record<string, unknown>, userId: string, message: string, userInfo: Record<string, unknown> | null) {
   // メッセージ保存
   const messageData = {
     id: Date.now().toString(),
@@ -352,7 +352,7 @@ async function handleExecutiveMessage(event: Record<string, any>, userId: string
 }
 
 // 従業員メッセージ処理
-async function handleEmployeeMessage(event: Record<string, any>, userId: string, message: string, userInfo: Record<string, unknown> | null) {
+async function handleEmployeeMessage(event: Record<string, unknown>, userId: string, message: string, userInfo: Record<string, unknown> | null) {
   // メッセージ保存
   const messageData = {
     id: Date.now().toString(),
@@ -391,7 +391,7 @@ async function handleEmployeeMessage(event: Record<string, any>, userId: string,
 }
 
 // 未登録ユーザー処理
-async function handleUnknownUser(event: Record<string, any>, userId: string, message: string) {
+async function handleUnknownUser(event: Record<string, unknown>, userId: string, message: string) {
   const replyMessage = `はじめまして。AI秘書システムです。
 
 ご利用を開始するには、以下の情報をお送りください：

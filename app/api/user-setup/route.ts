@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         
         // ユーザー情報更新
         await redis.set(`user:${userId}`, {
-          ...(userInfo as any),
+          ...(userInfo as Record<string, unknown>),
           role: newRole,
           updatedAt: new Date().toISOString()
         })

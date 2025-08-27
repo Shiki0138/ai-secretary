@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState(0)
-  const [scrollY, setScrollY] = useState(0)
+  const [, setScrollY] = useState(0)
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
   useEffect(() => {
