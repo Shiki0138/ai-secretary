@@ -192,7 +192,7 @@ export default function ExecutiveDashboard() {
                 経営者ダッシュボード
               </h1>
               <p className="text-sm text-gray-600 mt-1">
-                {tenantInfo?.companyName || user?.tenantId}
+                {(tenantInfo?.companyName as string) || (user?.tenantId as string) || ''}
               </p>
             </div>
             <div className="flex items-center gap-4">
