@@ -267,6 +267,93 @@ export async function POST(request: NextRequest) {
         })
       }
       
+      case 'update_event': {
+        const { tenantId, eventId, updates } = data
+        
+        if (!tenantId || !eventId || !updates) {
+          return NextResponse.json({
+            error: 'Missing required fields'
+          }, { status: 400 })
+        }
+        
+        const event = await redis.get(
+          `tenant:${tenantId}:calendar:event:${eventId}`
+        ) as CalendarEvent
+        
+        if (!event) {
+          return NextResponse.json({
+            error: 'Event not found'
+          }, { status: 404 })
+        }
+        
+        // 古い日付のインデックスから削除
+        const oldDateStr = new Date(event.startTime).toISOString().split('T')[0]
+        await redis.srem(
+          `tenant:${tenantId}:calendar:date:${oldDateStr}`,
+          eventId
+        )
+        
+        // イベント更新
+        const updatedEvent: CalendarEvent = {
+          ...event,
+          ...updates,
+          updatedAt: new Date().toISOString()
+        }
+        
+        await redis.set(
+          `tenant:${tenantId}:calendar:event:${eventId}`,
+          updatedEvent,
+          { ex: 86400 * 90 }
+        )
+        
+        // 新しい日付のインデックスに追加
+        const newDateStr = new Date(updatedEvent.startTime).toISOString().split('T')[0]
+        await redis.sadd(
+          `tenant:${tenantId}:calendar:date:${newDateStr}`,
+          eventId
+        )
+        
+        return NextResponse.json({
+          message: 'Event updated successfully',
+          event: updatedEvent
+        })
+      }
+      
+      case 'delete_event': {
+        const { tenantId, eventId } = data
+        
+        if (!tenantId || !eventId) {
+          return NextResponse.json({
+            error: 'Missing required fields'
+          }, { status: 400 })
+        }
+        
+        const event = await redis.get(
+          `tenant:${tenantId}:calendar:event:${eventId}`
+        ) as CalendarEvent
+        
+        if (!event) {
+          return NextResponse.json({
+            error: 'Event not found'
+          }, { status: 404 })
+        }
+        
+        // イベントを削除
+        await redis.del(`tenant:${tenantId}:calendar:event:${eventId}`)
+        
+        // 日付インデックスから削除
+        const dateStr = new Date(event.startTime).toISOString().split('T')[0]
+        await redis.srem(
+          `tenant:${tenantId}:calendar:date:${dateStr}`,
+          eventId
+        )
+        
+        return NextResponse.json({
+          message: 'Event deleted successfully',
+          deletedEventId: eventId
+        })
+      }
+      
       default:
         return NextResponse.json({
           error: 'Invalid action'

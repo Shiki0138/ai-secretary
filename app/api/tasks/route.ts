@@ -281,6 +281,49 @@ export async function POST(request: NextRequest) {
         })
       }
       
+      case 'delete_task': {
+        const { tenantId, taskId } = data
+        
+        if (!tenantId || !taskId) {
+          return NextResponse.json({
+            error: 'Missing required fields'
+          }, { status: 400 })
+        }
+        
+        const task = await redis.get(
+          `tenant:${tenantId}:task:${taskId}`
+        ) as Task
+        
+        if (!task) {
+          return NextResponse.json({
+            error: 'Task not found'
+          }, { status: 404 })
+        }
+        
+        // タスクを削除
+        await redis.del(`tenant:${tenantId}:task:${taskId}`)
+        
+        // ユーザーのタスクリストから削除
+        await redis.srem(
+          `tenant:${tenantId}:user:${task.assignedTo}:tasks`,
+          taskId
+        )
+        
+        // 期限日のタスクリストから削除
+        if (task.dueDate) {
+          const dueDateStr = new Date(task.dueDate).toISOString().split('T')[0]
+          await redis.srem(
+            `tenant:${tenantId}:tasks:due:${dueDateStr}`,
+            taskId
+          )
+        }
+        
+        return NextResponse.json({
+          message: 'Task deleted successfully',
+          deletedTaskId: taskId
+        })
+      }
+      
       case 'get_overdue_tasks': {
         const { tenantId } = data
         

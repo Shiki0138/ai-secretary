@@ -79,9 +79,12 @@ export default function ExecutiveDashboard() {
   const [todayEvents, setTodayEvents] = useState<CalendarEvent[]>([])
   const [activeTab, setActiveTab] = useState('overview')
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [showEmployeeEditModal, setShowEmployeeEditModal] = useState(false)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [usageData, setUsageData] = useState<UsageData | null>(null)
   const [sentMessages, setSentMessages] = useState<MessageStatus[]>([])
   const [showTaskModal, setShowTaskModal] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -345,6 +348,157 @@ export default function ExecutiveDashboard() {
       }
     } catch (error) {
       console.error('Task update error:', error)
+    }
+  }
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task)
+    setNewTask({
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      assignedTo: task.assignedTo,
+      dueDate: task.dueDate || ''
+    })
+    setShowTaskModal(true)
+  }
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm('このタスクを削除してもよろしいですか？')) return
+
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_task',
+          data: {
+            tenantId: user?.tenantId,
+            taskId
+          }
+        })
+      })
+
+      if (response.ok) {
+        alert('タスクを削除しました')
+        loadDashboardData(user?.tenantId as string, user?.userId as string)
+      } else {
+        alert('タスクの削除に失敗しました')
+      }
+    } catch (error) {
+      console.error('Task deletion error:', error)
+      alert('タスクの削除中にエラーが発生しました')
+    }
+  }
+
+  const handleSaveTask = async () => {
+    try {
+      const action = editingTask ? 'update_task' : 'create_task'
+      const taskData = editingTask ? {
+        ...newTask,
+        taskId: editingTask.id
+      } : {
+        ...newTask,
+        tenantId: user?.tenantId,
+        createdBy: user?.userId,
+        assignedTo: newTask.assignedTo || user?.userId
+      }
+
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          data: taskData
+        })
+      })
+
+      if (response.ok) {
+        alert(editingTask ? 'タスクを更新しました' : 'タスクを作成しました')
+        setShowTaskModal(false)
+        setEditingTask(null)
+        setNewTask({
+          title: '',
+          description: '',
+          priority: 'normal',
+          assignedTo: '',
+          dueDate: ''
+        })
+        loadDashboardData(user?.tenantId as string, user?.userId as string)
+      } else {
+        alert('タスクの保存に失敗しました')
+      }
+    } catch (error) {
+      console.error('Task save error:', error)
+      alert('タスクの保存中にエラーが発生しました')
+    }
+  }
+
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee(employee)
+    setShowEmployeeEditModal(true)
+  }
+
+  const handleDeleteEmployee = async (userId: string) => {
+    if (!confirm('この従業員を削除してもよろしいですか？関連するデータも削除されます。')) return
+
+    try {
+      const response = await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete_employee',
+          data: {
+            tenantId: user?.tenantId,
+            userId
+          }
+        })
+      })
+
+      if (response.ok) {
+        alert('従業員を削除しました')
+        loadDashboardData(user?.tenantId as string, user?.userId as string)
+      } else {
+        alert('従業員の削除に失敗しました')
+      }
+    } catch (error) {
+      console.error('Employee deletion error:', error)
+      alert('従業員の削除中にエラーが発生しました')
+    }
+  }
+
+  const handleSaveEmployee = async () => {
+    if (!editingEmployee) return
+
+    try {
+      const response = await fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_employee',
+          data: {
+            tenantId: user?.tenantId,
+            userId: editingEmployee.userId,
+            updates: {
+              name: editingEmployee.name,
+              department: editingEmployee.department,
+              role: editingEmployee.role
+            }
+          }
+        })
+      })
+
+      if (response.ok) {
+        alert('従業員情報を更新しました')
+        setShowEmployeeEditModal(false)
+        setEditingEmployee(null)
+        loadDashboardData(user?.tenantId as string, user?.userId as string)
+      } else {
+        alert('従業員情報の更新に失敗しました')
+      }
+    } catch (error) {
+      console.error('Employee update error:', error)
+      alert('従業員情報の更新中にエラーが発生しました')
     }
   }
 
@@ -698,9 +852,26 @@ export default function ExecutiveDashboard() {
                             登録日: {new Date(employee.registeredAt).toLocaleDateString()}
                           </p>
                         </div>
-                        <button className="text-sm text-blue-600 hover:text-blue-800">
-                          詳細
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditEmployee(employee)}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="編集"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEmployee(employee.userId)}
+                            className="text-red-600 hover:text-red-800"
+                            title="削除"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1201,7 +1372,11 @@ export default function ExecutiveDashboard() {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <button className="text-blue-600 hover:text-blue-800">
+                              <button
+                                onClick={() => handleEditTask(task)}
+                                className="text-blue-600 hover:text-blue-800"
+                                title="編集"
+                              >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
@@ -1209,9 +1384,19 @@ export default function ExecutiveDashboard() {
                               <button
                                 onClick={() => updateTaskStatus(task.id, 'completed')}
                                 className="text-green-600 hover:text-green-800"
+                                title="完了にする"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteTask(task.id)}
+                                className="text-red-600 hover:text-red-800"
+                                title="削除"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
                             </div>
@@ -1376,7 +1561,7 @@ export default function ExecutiveDashboard() {
       {showTaskModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">新規タスク作成</h3>
+            <h3 className="text-lg font-semibold mb-4">{editingTask ? 'タスク編集' : '新規タスク作成'}</h3>
             
             <div className="space-y-4">
               <div>
@@ -1456,6 +1641,7 @@ export default function ExecutiveDashboard() {
               <button
                 onClick={() => {
                   setShowTaskModal(false)
+                  setEditingTask(null)
                   setNewTask({
                     title: '',
                     description: '',
@@ -1469,10 +1655,79 @@ export default function ExecutiveDashboard() {
                 キャンセル
               </button>
               <button
-                onClick={createTask}
+                onClick={handleSaveTask}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
               >
-                作成
+                {editingTask ? '更新' : '作成'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 従業員編集モーダル */}
+      {showEmployeeEditModal && editingEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">従業員情報編集</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  名前 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={editingEmployee.name}
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  部署
+                </label>
+                <input
+                  type="text"
+                  value={editingEmployee.department || ''}
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, department: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例：営業部"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  役職
+                </label>
+                <select
+                  value={editingEmployee.role}
+                  onChange={(e) => setEditingEmployee({ ...editingEmployee, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="employee">従業員</option>
+                  <option value="manager">マネージャー</option>
+                  <option value="executive">役員</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setShowEmployeeEditModal(false)
+                  setEditingEmployee(null)
+                }}
+                className="px-4 py-2 border rounded hover:bg-gray-50"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleSaveEmployee}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                更新
               </button>
             </div>
           </div>
